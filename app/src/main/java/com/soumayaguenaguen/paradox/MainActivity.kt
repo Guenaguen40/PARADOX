@@ -1,8 +1,7 @@
 package com.soumayaguenaguen.paradox
-
+import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
@@ -31,10 +30,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val am = assets
+        val am: AssetManager = assets
         try {
             val files = am.list("img")
-
             val grid = findViewById<GridView>(R.id.grid)
             grid.adapter = ImageAdapter(this)
             grid.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
@@ -43,11 +41,12 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         } catch (e: IOException) {
-            Toast.makeText(this, e.localizedMessage, Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+            Toast.makeText(this@MainActivity,e.localizedMessage, Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun onImageFromCameraClick(view: View?) {
+    fun onImageFromCameraClick(view: android.view.View) {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         if (intent.resolveActivity(packageManager) != null) {
             var photoFile: File? = null
@@ -56,8 +55,12 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IOException) {
                 Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
             }
-            photoFile?.let {
-                val photoUri = FileProvider.getUriForFile(this, applicationContext.packageName + ".fileprovider", it)
+
+            if (photoFile != null){
+                val photoUri = FileProvider.getUriForFile(
+                    this@MainActivity, applicationContext.packageName + ".fileprovider",
+                    photoFile
+                )
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
             }
@@ -92,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+        super.onActivityResult(resultCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val intent = Intent(this, PuzzleActivity::class.java)
             intent.putExtra("mCurrentPhotoPath", mCurrentPhotoPath)
@@ -100,9 +103,8 @@ class MainActivity : AppCompatActivity() {
         }
         if (requestCode == REQUEST_IMAGE_GALLERY && resultCode == RESULT_OK) {
             val uri = data?.data
-
             val intent = Intent(this, PuzzleActivity::class.java)
-            intent.putExtra("mCurrentPhotoUri", uri?.toString())
+            intent.putExtra("mCurrentPhotoUri", uri)
             startActivity(intent)
         }
     }

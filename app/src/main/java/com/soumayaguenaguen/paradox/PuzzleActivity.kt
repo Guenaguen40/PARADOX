@@ -109,9 +109,12 @@ class PuzzleActivity : AppCompatActivity() {
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, scaledBitmapWidth, scaledBitmapHeight, true)
         val croppedBitmap = Bitmap.createBitmap(
             scaledBitmap,
-                Math.abs(scaledBitmapLeft),
-                Math.abs(scaledBitmapTop), croppedImageWidth, croppedImageHeight
+            Math.abs(scaledBitmapLeft),
+            Math.abs(scaledBitmapTop),
+            croppedImageWidth,
+            croppedImageHeight - 2 * Math.abs(scaledBitmapTop)
         )
+
 
         // Calculate the with and height of the pieces
         val pieceWidth = croppedImageWidth/cols
@@ -194,10 +197,11 @@ class PuzzleActivity : AppCompatActivity() {
                     path.lineTo(pieceBitmap.width.toFloat(), pieceBitmap.height.toFloat())
                 }
 
-                if (row == - 1) {
+                if (row == rows - 1) {
                     // bottom side piece
                     path.lineTo(offsetX.toFloat(), pieceBitmap.height.toFloat())
-                } else {
+
+            } else {
                     // bottom bump
                     path.lineTo((offsetX + (pieceBitmap.width) / 3 * 2).toFloat(),
                     pieceBitmap.height.toFloat())
@@ -371,8 +375,9 @@ class PuzzleActivity : AppCompatActivity() {
     }
     companion object{
         fun rotateImage(source:Bitmap,angle:Float):Bitmap {
-            val matrix = Matrix()
-                matrix.postRotate(angle)
+            val matrix = Matrix().apply {
+                postRotate(angle)
+            }
             return Bitmap.createBitmap(
                 source, 0, 0, source.width, source.height, matrix, true
             )
